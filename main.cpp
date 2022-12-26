@@ -76,13 +76,13 @@ int process_file(Args && ...a) {
 // overloading example
 
 template<typename ...Args>
-TINYARGS_FUNCTION_ENABLE(decltype(args.ipaddr))
+TINYARGS_FUNCTION_ENABLE(decltype(args.ipaddr), Args...)
 (int) overloaded(Args && .../*args*/) {
     return 0;
 }
 
 template<typename ...Args>
-TINYARGS_FUNCTION_DISABLE(decltype(args.ipaddr))
+TINYARGS_FUNCTION_DISABLE(decltype(args.ipaddr), Args...)
 (int) overloaded(Args && .../*args*/) {
     return 1;
 }

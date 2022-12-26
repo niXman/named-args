@@ -139,14 +139,14 @@ typename T::type get_arg(std::tuple<Args...> &args, const T &, T &&def) {
 /*************************************************************************************************/
 
 #define TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE(...) __VA_ARGS__>::type
-#define TINYARGS_FUNCTION_ENABLE(T) \
+#define TINYARGS_FUNCTION_ENABLE(T, VARIADIC) \
     typename std::enable_if< \
-        ::tinyargs::details::contains<typename std::decay<T>::type, Args...>::value == true \
+        ::tinyargs::details::contains<typename std::decay<T>::type, VARIADIC>::value == true \
             ,TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
 
-#define TINYARGS_FUNCTION_DISABLE(T) \
+#define TINYARGS_FUNCTION_DISABLE(T, VARIADIC) \
     typename std::enable_if< \
-        ::tinyargs::details::contains<typename std::decay<T>::type, Args...>::value == false \
+        ::tinyargs::details::contains<typename std::decay<T>::type, VARIADIC>::value == false \
             ,TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
 
 /*************************************************************************************************/
