@@ -136,12 +136,27 @@ typename T::type get_arg(std::tuple<Args...> &args, const T &, T &&def) {
     return details::get_arg_impl<ok>::template get<T>(std::forward<T>(def), args);
 }
 
+/*************************************************************************************************/
+
+#define TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE(...) __VA_ARGS__>::type
+#define TINYARGS_FUNCTION_ENABLE(T) \
+    typename std::enable_if< \
+        ::tinyargs::details::contains<typename std::decay<T>::type, Args...>::value == true \
+            ,TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
+
+#define TINYARGS_FUNCTION_DISABLE(T) \
+    typename std::enable_if< \
+::tinyargs::details::contains<typename std::decay<T>::type, Args...>::value == false \
+            ,TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
+
+/*************************************************************************************************/
+
 #define TINY_ARGS_ARGUMENT(name, type_) \
-    struct name { \
+    struct name ## _t { \
         using type = type_; \
         type v; \
         template<typename T> \
-        name operator= (T &&v) const \
+        name ## _t operator= (T &&v) const \
         { return {std::forward<T>(v)}; }\
     } const name{};
 

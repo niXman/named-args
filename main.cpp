@@ -26,6 +26,7 @@
 
 #include "tiny-args.hpp"
 
+#include <iostream>
 #include <string>
 #include <cassert>
 
@@ -40,6 +41,7 @@ struct {
     TINY_ARGS_ARGUMENT(fname, std::string);
     TINY_ARGS_ARGUMENT(fsize, int);
     TINY_ARGS_ARGUMENT(fmode, char);
+    TINY_ARGS_ARGUMENT(ipaddr, std::string);
 } static const args;
 
 /*************************************************************************************************/
@@ -71,6 +73,21 @@ int process_file(Args && ...a) {
 }
 
 /*************************************************************************************************/
+// overloading example
+
+template<typename ...Args>
+TINYARGS_FUNCTION_ENABLE(decltype(args.ipaddr))
+(int) overloaded(Args && .../*args*/) {
+    return 0;
+}
+
+template<typename ...Args>
+TINYARGS_FUNCTION_DISABLE(decltype(args.ipaddr))
+(int) overloaded(Args && .../*args*/) {
+    return 1;
+}
+
+/*************************************************************************************************/
 
 // usage
 int main() {
@@ -91,11 +108,13 @@ int main() {
     assert(r == 'r');
 
     r = process_file(
-         args.fmode = k_fmode
-        ,args.fname = k_fname
+         args.fname = k_fname
         ,args.fsize = k_fsize
     );
     assert(r == 'r');
+
+    assert(overloaded(args.fname = "") == 1);
+    assert(overloaded(args.ipaddr = "") == 0);
 
     return r;
 }
