@@ -1,7 +1,7 @@
-# tiny-args
-one more tiny implementation of the concept of named function arguments for C++11
+# Tiny-args
+One more tiny implementation of the concept of named function arguments for C++11
 
-# example
+# Example
 ```cpp
 // declaration of args-group with it's members
 struct {
@@ -22,7 +22,7 @@ int process_file(Args && ...a) {
     // pack variadic-list into a tuple.
     auto tuple = std::make_tuple(std::forward<Args>(a)...);
     // get as required.
-    // if the arg was not passed to this function - it will leads to compile-time error!
+    // if the 'fmode' was not passed to this function - it will leads to compile-time error!
     auto fname = tinyargs::get_arg(tuple, args.fname);
     auto fsize = tinyargs::get_arg(tuple, args.fsize);
     // get as optional.
