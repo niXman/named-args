@@ -27,9 +27,15 @@
 #include "tiny-args.hpp"
 
 #include <string>
+#include <cassert>
+
+const char *k_fname = "1.txt";
+const int   k_fsize = 1234;
+const char  k_fmode = 'r';
 
 /*************************************************************************************************/
 
+// declaration of args-group with it's members
 struct {
     TINY_ARGS_ARGUMENT(fname, std::string);
     TINY_ARGS_ARGUMENT(fsize, int);
@@ -42,26 +48,55 @@ struct {
 // fsize - required
 // fmode - optional
 
+// our function which we want to relax =)
 template<typename ...Args>
 int process_file(Args && ...a) {
+    // pack variadic-list into a tuple.
     auto tuple = std::make_tuple(std::forward<Args>(a)...);
+
+    // get as required.
+    // if the 'fmode' was not passed to this function - it will leads to compile-time error!
     auto fname = tinyargs::get_arg(tuple, args.fname);
     auto fsize = tinyargs::get_arg(tuple, args.fsize);
+
+    // get as optional.
+    // it the option was not passed to the function, then 'r' will be used for 'fmode'.
     auto fmode = tinyargs::get_arg(tuple, args.fmode, args.fmode = 'r');
 
-    return 0;
+    assert(fmode == k_fmode);
+    assert(fname == k_fname);
+    assert(fsize == k_fsize);
+
+    return fmode;
 }
 
 /*************************************************************************************************/
 
-int main(int argc, char **argv) {
+// usage
+int main() {
+
+    // the order of the specified arguments doesn't matter!
     int r = process_file(
-         args.fname = argv[1]
-        ,args.fsize = atoi(argv[2])
-        ,args.fmode = argv[3][0]
+         args.fname = k_fname
+        ,args.fsize = k_fsize
+        ,args.fmode = k_fmode
     );
+    assert(r == 'r');
+
+    r = process_file(
+         args.fname = k_fname
+        ,args.fmode = k_fmode
+        ,args.fsize = k_fsize
+    );
+    assert(r == 'r');
+
+    r = process_file(
+         args.fmode = k_fmode
+        ,args.fname = k_fname
+        ,args.fsize = k_fsize
+    );
+    assert(r == 'r');
 
     return r;
 }
-
 /*************************************************************************************************/
