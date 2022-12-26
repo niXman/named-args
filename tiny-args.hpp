@@ -146,7 +146,7 @@ typename T::type get_arg(std::tuple<Args...> &args, const T &, T &&def) {
 
 #define TINYARGS_FUNCTION_DISABLE(T) \
     typename std::enable_if< \
-::tinyargs::details::contains<typename std::decay<T>::type, Args...>::value == false \
+        ::tinyargs::details::contains<typename std::decay<T>::type, Args...>::value == false \
             ,TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
 
 /*************************************************************************************************/
