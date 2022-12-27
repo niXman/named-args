@@ -63,6 +63,43 @@ struct contains: std::integral_constant<
 >
 {};
 
+template<typename ...Types>
+struct types_list;
+
+template<bool OK, typename T0, typename ...Args>
+struct multi_contains_impl;
+
+template<typename T0, typename ...Types, typename ...Args>
+struct multi_contains_impl<false, types_list<T0, Types...>, Args...>
+    : multi_contains_impl<
+         contains<typename std::decay<T0>::type, Args...>::value
+        ,types_list<Types...>
+        ,Args...
+    >::type
+{};
+
+template<typename ...Args>
+struct multi_contains_impl<false, types_list<>, Args...>
+    : std::false_type
+{};
+
+template<typename ...Types, typename ...Args>
+struct multi_contains_impl<true, types_list<Types...>, Args...>
+    : std::true_type
+{};
+
+template<typename T, typename ...Args>
+struct multi_contains;
+
+template<typename T0, typename ...Types, typename ...Args>
+struct multi_contains<types_list<T0, Types...>, Args...>
+    : multi_contains_impl<
+          contains<typename std::decay<T0>::type, Args...>::value
+        ,types_list<T0, Types...>
+        ,Args...
+    >::type
+{};
+
 template<
      typename T
     ,typename A0
@@ -179,14 +216,14 @@ typename T::type get_arg(const T &, Def &&def, Args &&...args) {
 /*************************************************************************************************/
 
 #define TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE(...) __VA_ARGS__>::type
-#define TINYARGS_FUNCTION_ENABLE(T, VARIADIC) \
+#define TINYARGS_FUNCTION_ENABLE(VARIADIC, ...) \
     typename std::enable_if< \
-        ::tinyargs::details::contains<typename std::decay<T>::type, VARIADIC>::value == true \
+        ::tinyargs::details::multi_contains<::tinyargs::details::types_list<__VA_ARGS__>, VARIADIC>::value == true \
             ,TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
 
-#define TINYARGS_FUNCTION_DISABLE(T, VARIADIC) \
+#define TINYARGS_FUNCTION_DISABLE(VARIADIC, ...) \
     typename std::enable_if< \
-        ::tinyargs::details::contains<typename std::decay<T>::type, VARIADIC>::value == false \
+        ::tinyargs::details::multi_contains<::tinyargs::details::types_list<__VA_ARGS__>, VARIADIC>::value == false \
             ,TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
 
 /*************************************************************************************************/

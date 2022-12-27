@@ -42,7 +42,7 @@ struct {
     TINY_ARGS_ARGUMENT(fsize, int);
     TINY_ARGS_ARGUMENT(fmode, char);
     TINY_ARGS_ARGUMENT(ipaddr, std::string);
-} static const args;
+} const args;
 
 /*************************************************************************************************/
 
@@ -99,13 +99,13 @@ int process_file_1(Args && ...a) {
 // overloading example
 
 template<typename ...Args>
-TINYARGS_FUNCTION_ENABLE(decltype(args.ipaddr), Args...)
+TINYARGS_FUNCTION_ENABLE(Args..., decltype(args.ipaddr))
 (int) overloaded(Args && .../*args*/) {
     return 0;
 }
 
 template<typename ...Args>
-TINYARGS_FUNCTION_DISABLE(decltype(args.ipaddr), Args...)
+TINYARGS_FUNCTION_DISABLE(Args..., decltype(args.ipaddr))
 (int) overloaded(Args && .../*args*/) {
     return 1;
 }
@@ -114,6 +114,12 @@ TINYARGS_FUNCTION_DISABLE(decltype(args.ipaddr), Args...)
 
 // usage
 int main() {
+    using types = tinyargs::details::types_list<int, char, float, long>;
+    constexpr bool ok0 = tinyargs::details::multi_contains<types, double, short, int>::value;
+    static_assert(ok0, "");
+
+    constexpr bool ok1 = tinyargs::details::multi_contains<types, double, short>::value;
+    static_assert(!ok1, "");
 
 // variadic packed as tuple
     // the order of the specified arguments doesn't matter!
@@ -137,8 +143,10 @@ int main() {
     );
     assert(r == 'r');
 
-    assert(overloaded(args.fname = "") == 1);
-    assert(overloaded(args.ipaddr = "") == 0);
+    r = overloaded(args.fname = "");
+    assert(r == 1);
+    r = overloaded(args.ipaddr = "");
+    assert(r == 0);
 
 // variadic NOT packed as tuple
 
