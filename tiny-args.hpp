@@ -92,10 +92,10 @@ struct position: std::integral_constant<
 {};
 
 template<bool ok>
-struct get_arg_impl;
+struct get_arg_impl_tuple;
 
 template<>
-struct get_arg_impl<true> {
+struct get_arg_impl_tuple<true> {
     template<typename T, typename ...Args>
     static typename T::type get(std::tuple<Args...> &args) {
         constexpr auto idx = position<T, Args...>::value;
@@ -110,7 +110,7 @@ struct get_arg_impl<true> {
 };
 
 template<>
-struct get_arg_impl<false> {
+struct get_arg_impl_tuple<false> {
     template<typename T, typename ...Args>
     static typename T::type get(T &&v, std::tuple<Args...> &/*args*/) {
         return std::forward<T>(v).v;
@@ -124,16 +124,56 @@ struct get_arg_impl<false> {
 /*************************************************************************************************/
 
 template<typename T, typename ...Args>
-typename T::type get_arg(std::tuple<Args...> &args, const T &) {
+typename T::type get_arg(const T &, std::tuple<Args...> &args) {
     constexpr bool ok = details::contains<T, Args...>::value;
     static_assert(ok == true, "looks like that argument is required");
-    return details::get_arg_impl<ok>::template get<T>(args);
+    return details::get_arg_impl_tuple<ok>::template get<T>(args);
 }
 
-template<typename T, typename ...Args>
-typename T::type get_arg(std::tuple<Args...> &args, const T &, T &&def) {
+template<typename T, typename Def, typename ...Args>
+typename T::type get_arg(const T &, Def &&def, std::tuple<Args...> &args) {
     constexpr bool ok = details::contains<T, Args...>::value;
-    return details::get_arg_impl<ok>::template get<T>(std::forward<T>(def), args);
+    return details::get_arg_impl_tuple<ok>::template get<T>(std::forward<Def>(def), args);
+}
+
+/*************************************************************************************************/
+
+template<bool ok>
+struct get_arg_impl_variadic;
+
+template<>
+struct get_arg_impl_variadic<true> {
+    template<typename T, typename Arg0, typename ...Args>
+    static typename std::enable_if<!std::is_same<T, Arg0>::value, typename T::type>::type
+    get(Arg0 &&/*arg0*/, Args && ...args) {
+        return get<T>(std::forward<Args>(args)...);
+    }
+    template<typename T, typename Arg0, typename ...Args>
+    static typename std::enable_if<std::is_same<T, Arg0>::value, typename T::type>::type
+    get(Arg0 &&arg0, Args && .../*args*/) {
+        return std::forward<Arg0>(arg0).v;
+    }
+};
+
+template<>
+struct get_arg_impl_variadic<false> {
+    template<typename T, typename Def, typename ...Args>
+    static typename Def::type get(Def &&def, Args &&.../*args*/) {
+        return std::forward<Def>(def).v;
+    }
+};
+
+template<typename T, typename ...Args>
+typename T::type get_arg(const T &, Args &&...args) {
+    constexpr bool ok = details::contains<T, Args...>::value;
+    static_assert(ok == true, "looks like that argument is required");
+    return get_arg_impl_variadic<ok>::template get<T>(std::forward<Args>(args)...);
+}
+
+template<typename T, typename Def, typename ...Args>
+typename T::type get_arg(const T &, Def &&def, Args &&...args) {
+    constexpr bool ok = details::contains<T, Args...>::value;
+    return get_arg_impl_variadic<ok>::template get<T>(std::forward<Def>(def), std::forward<Args>(args)...);
 }
 
 /*************************************************************************************************/
