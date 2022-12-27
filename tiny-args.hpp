@@ -34,6 +34,7 @@ namespace tinyargs {
 namespace details {
 
 /*************************************************************************************************/
+// contains
 
 template<
      typename T
@@ -62,6 +63,8 @@ struct contains: std::integral_constant<
     || std::is_same<T, A9>::value
 >
 {};
+
+// multi-contains
 
 template<typename ...Types>
 struct types_list;
