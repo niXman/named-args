@@ -30,12 +30,12 @@ int process_file_0(Args && ...a) {
 
     // get as required.
     // if the 'fmode' was not passed to this function - it will leads to compile-time error!
-    auto fname = tinyargs::get_arg(args.fname, tuple);
-    auto fsize = tinyargs::get_arg(args.fsize, tuple);
+    auto fname = tinyargs::get(args.fname, tuple);
+    auto fsize = tinyargs::get(args.fsize, tuple);
 
     // get as optional.
     // it the option was not passed to the function, then 'r' will be used for 'fmode'.
-    auto fmode = tinyargs::get_arg(args.fmode, args.fmode = 'r', tuple);
+    auto fmode = tinyargs::get(args.fmode, args.fmode = 'r', tuple);
 
     assert(fmode == k_fmode);
     assert(fname == k_fname);
@@ -53,12 +53,12 @@ template<typename ...Args>
 int process_file_1(Args && ...a) {
     // get as required.
     // if the 'fmode' was not passed to this function - it will leads to compile-time error!
-    auto fname = tinyargs::get_arg(args.fname, std::forward<Args>(a)...);
-    auto fsize = tinyargs::get_arg(args.fsize, std::forward<Args>(a)...);
+    auto fname = tinyargs::get(args.fname, std::forward<Args>(a)...);
+    auto fsize = tinyargs::get(args.fsize, std::forward<Args>(a)...);
 
     // get as optional.
     // it the option was not passed to the function, then 'r' will be used for 'fmode'.
-    auto fmode = tinyargs::get_arg(args.fmode, args.fmode = 'r', std::forward<Args>(a)...);
+    auto fmode = tinyargs::get(args.fmode, args.fmode = 'r', std::forward<Args>(a)...);
 
     assert(fmode == k_fmode);
     assert(fname == k_fname);
