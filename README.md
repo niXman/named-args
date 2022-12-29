@@ -119,3 +119,4 @@ main:                                   # @main
         movsx   eax, byte ptr [rax + rcx]
         ret
 ```
+As you can see, there is nothing superfluous here!
