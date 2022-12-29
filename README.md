@@ -1,5 +1,5 @@
 # Tiny-args
-One more tiny implementation of the concept of named function arguments for C++11
+One more tiny implementation of the concept of named function arguments for C++11 with zero runtime overhead
 
 # Example
 ```cpp
@@ -89,4 +89,33 @@ int main(int, char **argv) {
     return r;
 }
 /*************************************************************************************************/
+```
+
+# Overhead
+For this code sample:
+```cpp
+struct {
+    TINYARGS_ARGUMENT(fname, const char *);
+    TINYARGS_ARGUMENT(fsize, int);
+} const args;
+
+template<typename ...Args>
+int func(Args && ...a) noexcept {
+    auto *ptr = tinyargs::get(args.fname, std::forward<Args>(a)...);
+    auto len  = tinyargs::get(args.fsize, std::forward<Args>(a)...);
+    return ptr[len];
+}
+
+int main(int argc, char **argv) {
+    return func(args.fname = argv[0], args.fsize = argc);
+}
+
+```
+the following ASM will be generated:
+```asm
+main:                                   # @main
+        mov     rax, qword ptr [rsi]
+        movsxd  rcx, edi
+        movsx   eax, byte ptr [rax + rcx]
+        ret
 ```
