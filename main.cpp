@@ -33,15 +33,31 @@
 const char *k_fname = "1.txt";
 const int   k_fsize = 1234;
 const char  k_fmode = 'r';
+const char *k_ipaddr = "192.168.1.101";
 
 /*************************************************************************************************/
 
+struct noncopyable {
+    noncopyable(const noncopyable &) = delete;
+    noncopyable& operator= (const noncopyable &) = delete;
+    noncopyable(noncopyable &&) = default;
+    noncopyable& operator= (noncopyable &&) = default;
+
+    using type = std::string;
+    type v;
+
+    template<typename U>
+    noncopyable operator=(U &&u) const {
+        return {std::forward<U>(u)};
+    }
+};
+
 // declaration of args-group with it's members
 struct {
-    TINY_ARGS_ARGUMENT(fname, std::string);
-    TINY_ARGS_ARGUMENT(fsize, int);
-    TINY_ARGS_ARGUMENT(fmode, char);
-    TINY_ARGS_ARGUMENT(ipaddr, std::string);
+    TINYARGS_ARGUMENT(fname, std::string);
+    TINYARGS_ARGUMENT(fsize, int);
+    TINYARGS_ARGUMENT(fmode, char);
+    TINYARGS_ARGUMENT(ipaddr, noncopyable);
 } const args;
 
 /*************************************************************************************************/
@@ -58,16 +74,20 @@ int process_file_0(Args && ...a) {
 
     // get as required.
     // if the 'fmode' was not passed to this function - it will leads to compile-time error!
-    auto fname = tinyargs::get_arg(args.fname, tuple);
-    auto fsize = tinyargs::get_arg(args.fsize, tuple);
+    auto fname = tinyargs::get(args.fname, tuple);
+    auto fsize = tinyargs::get(args.fsize, tuple);
 
     // get as optional.
     // it the option was not passed to the function, then 'r' will be used for 'fmode'.
-    auto fmode = tinyargs::get_arg(args.fmode, args.fmode = 'r', tuple);
+    auto fmode = tinyargs::get(args.fmode, args.fmode = 'w', tuple);
 
-    assert(fmode == k_fmode);
     assert(fname == k_fname);
     assert(fsize == k_fsize);
+    if ( tinyargs::details::position<decltype(args.fmode), Args...>::value != -1 ) {
+        assert(fmode == k_fmode);
+    } else {
+        assert(fmode == 'w');
+    }
 
     return fmode;
 }
@@ -81,18 +101,61 @@ template<typename ...Args>
 int process_file_1(Args && ...a) {
     // get as required.
     // if the 'fmode' was not passed to this function - it will leads to compile-time error!
-    auto fname = tinyargs::get_arg(args.fname, std::forward<Args>(a)...);
-    auto fsize = tinyargs::get_arg(args.fsize, std::forward<Args>(a)...);
+    auto fname = tinyargs::get(args.fname, std::forward<Args>(a)...);
+    auto fsize = tinyargs::get(args.fsize, std::forward<Args>(a)...);
 
     // get as optional.
     // it the option was not passed to the function, then 'r' will be used for 'fmode'.
-    auto fmode = tinyargs::get_arg(args.fmode, args.fmode = 'r', std::forward<Args>(a)...);
+    auto fmode = tinyargs::get(args.fmode, args.fmode = 'w', std::forward<Args>(a)...);
 
-    assert(fmode == k_fmode);
     assert(fname == k_fname);
     assert(fsize == k_fsize);
+    if ( tinyargs::details::position<decltype(args.fmode), Args...>::value != -1 ) {
+        assert(fmode == k_fmode);
+    } else {
+        assert(fmode == 'w');
+    }
 
     return fmode;
+}
+
+/*************************************************************************************************/
+// non-copyable test
+
+// fname  - required
+// fmode  - optional
+// ipaddr - optional
+
+// variadic packed as tuple
+template<typename ...Args>
+noncopyable process_file_2(Args && ...a) {
+    // pack variadic-list into a tuple.
+    auto tuple = std::make_tuple(std::forward<Args>(a)...);
+
+    // get as required.
+    // if the 'fmode' was not passed to this function - it will leads to compile-time error!
+    auto fname = tinyargs::get(args.fname, tuple);
+
+    // get as optional.
+    // it the option was not passed to the function, then 'r' will be used for 'fmode'.
+    auto fmode = tinyargs::get(args.fmode, args.fmode = 'w',  tuple);
+
+    // the same as for above, but for non-copyable-but-movable  type
+    auto ipaddr = tinyargs::get(args.ipaddr, args.ipaddr = "192.168.1.102", tuple);
+
+    assert(fname == k_fname);
+    if ( tinyargs::details::position<decltype(args.fmode), Args...>::value != -1 ) {
+        assert(fmode == k_fmode);
+    } else {
+        assert(fmode == 'w');
+    }
+    if ( tinyargs::details::position<decltype(args.ipaddr), Args...>::value != -1 ) {
+        assert(ipaddr.v == k_ipaddr);
+    } else {
+        assert(ipaddr.v == "192.168.1.102");
+    }
+
+    return ipaddr;
 }
 
 /*************************************************************************************************/
@@ -112,14 +175,47 @@ TINYARGS_FUNCTION_DISABLE(Args..., decltype(args.ipaddr))
 
 /*************************************************************************************************/
 
+template<typename E, typename T>
+void foo() { std::cout << __PRETTY_FUNCTION__ << std::endl; }
+
+template<std::size_t I, typename T, typename ...Args>
+constexpr bool tuple_elem_equal(Args && ...) {
+    using elem = typename tinyargs::details::tuple_element<I, Args...>::type;
+    //foo<T, elem>();
+
+    return std::is_same<T, elem>::value;
+}
+/*************************************************************************************************/
+
 // usage
-int main() {
+int main(int argc, char **) {
+    static_assert(tinyargs::details::position<int>::value == -1, "");
+    static_assert(tinyargs::details::position<int, char, long>::value == -1, "");
+    static_assert(tinyargs::details::position<int, char, int>::value == 1, "");
+    static_assert(tinyargs::details::position<int, int, char>::value == 0, "");
+
     using types = tinyargs::details::types_list<int, char, float, long>;
     constexpr bool ok0 = tinyargs::details::multi_contains<types, double, short, int>::value;
     static_assert(ok0, "");
 
     constexpr bool ok1 = tinyargs::details::multi_contains<types, double, short>::value;
     static_assert(!ok1, "");
+
+    using tuple = std::tuple<char, int &, const double, const long &>;
+    using Elem0 = tinyargs::details::tuple_element<0, tuple>::type;
+    static_assert(std::is_same<char, Elem0>::value, "");
+    using Elem1 = tinyargs::details::tuple_element<1, tuple>::type;
+    static_assert(std::is_same<int &, Elem1>::value, "");
+    using Elem2 = tinyargs::details::tuple_element<2, tuple>::type;
+    static_assert(std::is_same<const double, Elem2>::value, "");
+    using Elem3 = tinyargs::details::tuple_element<3, tuple>::type;
+    static_assert(std::is_same<const long &, Elem3>::value, "");
+
+    static_assert(tuple_elem_equal<0, int>(3) == true, "");
+    static_assert(tuple_elem_equal<0, int &>(argc) == true, "");
+    static_assert(tuple_elem_equal<0, const int &>(static_cast<const int &>(argc)) == true, "");
+    static_assert(tuple_elem_equal<0, int>(std::move(argc)) == true, "");
+    static_assert(tuple_elem_equal<0, int>(std::forward<int>(argc)) == true, "");
 
 // variadic packed as tuple
     // the order of the specified arguments doesn't matter!
@@ -141,7 +237,7 @@ int main() {
          args.fname = k_fname
         ,args.fsize = k_fsize
     );
-    assert(r == 'r');
+    assert(r == 'w');
 
     r = overloaded(args.fname = "");
     assert(r == 1);
@@ -168,7 +264,29 @@ int main() {
          args.fname = k_fname
         ,args.fsize = k_fsize
     );
-    assert(r == 'r');
+    assert(r == 'w');
+
+// non-copyable test
+
+    auto nc0 = process_file_2(
+         args.fname = k_fname
+        ,args.ipaddr= k_ipaddr
+        ,args.fmode = k_fmode
+    );
+    assert(nc0.v == k_ipaddr);
+
+    auto nc1 = process_file_2(
+         args.fname = k_fname
+        ,args.fmode = k_fmode
+        ,args.ipaddr= k_ipaddr
+    );
+    assert(nc1.v == k_ipaddr);
+
+    auto nc2 = process_file_2(
+         args.fname = k_fname
+        ,args.fmode = k_fmode
+    );
+    assert(nc2.v == "192.168.1.102");
 
     return r;
 }
