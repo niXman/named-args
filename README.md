@@ -1,5 +1,5 @@
 # Tiny-args
-One more tiny implementation of the concept of named function arguments for C++11 with zero runtime overhead
+C++11 tiny implementation of the concept of named function arguments with zero runtime overhead
 
 # Example
 ```cpp
