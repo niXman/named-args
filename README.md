@@ -99,8 +99,9 @@ struct {
 
 template<typename ...Args>
 int func(Args && ...a) noexcept {
-    auto *ptr = namedargs::get(args.fname, std::forward<Args>(a)...);
-    auto len  = namedargs::get(args.fsize, std::forward<Args>(a)...);
+    auto fnargs = std::make_tuple(std::forward<Args>(a)...);
+    auto *ptr = namedargs::get(args.fname, fnargs);
+    auto len  = namedargs::get(args.fsize, fnargs);
     return ptr[len];
 }
 
