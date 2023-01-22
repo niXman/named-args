@@ -281,7 +281,7 @@ template<
 typename details::enable_if_tuple<typename K::type, UCT>::type
 get(const K &k, Tuple &&tuple) {
     constexpr int idx = details::position<K, UCT>::value;
-    static_assert(idx != -1, "looks like that argument is required");
+    static_assert(idx != -1, "that argument seems to be necessary!");
     return details::get_arg_impl_tuple<idx != -1>::template get(
         k, details::int_const<std::size_t, idx>{}, std::forward<Tuple>(tuple));
 }
@@ -307,7 +307,7 @@ template<typename K, typename ...Args>
 typename details::disable_if_tuple<typename K::type, Args...>::type
 get(const K &k, Args && ...args) {
     constexpr int idx = details::position<K, Args...>::value;
-    static_assert(idx != -1, "looks like that argument is required");
+    static_assert(idx != -1, "that argument seems to be necessary!");
     return details::get_arg_impl_variadic<idx != -1>::template get(
         k, K{}, std::forward<Args>(args)...);
 }
