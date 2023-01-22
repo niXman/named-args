@@ -24,7 +24,7 @@
 // SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#include "named-args.hpp"
+#include <named-args/named-args.hpp>
 
 #include <iostream>
 #include <string>

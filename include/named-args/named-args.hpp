@@ -36,6 +36,18 @@ namespace details {
 /*************************************************************************************************/
 // tools
 
+template<bool OK, typename T>
+struct required_ret_holder {
+    static_assert(OK, "no REQUIRED argument!");
+    using type = T;
+};
+
+template<bool OK, typename T>
+struct refused_ret_holder {
+    static_assert(OK, "there is a REFUSED argument!");
+    using type = T;
+};
+
 template<typename T, T v>
 struct int_const {
     static constexpr T value = v;
@@ -320,6 +332,18 @@ get(const K &k, Def &&def, Args && ...args) {
 
 #define NAMEDARGS_FUNC_DISABLE(VARIADIC, ...) \
     typename std::enable_if< \
+        ::namedargs::details::multi_contains<::namedargs::details::types_list<__VA_ARGS__> \
+            ,VARIADIC>::value == false \
+                ,NAMEDARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
+
+#define NAMEDARGS_FUNC_REQUIRE(VARIADIC, ...) \
+    typename ::namedargs::details::required_ret_holder< \
+        ::namedargs::details::multi_contains<::namedargs::details::types_list<__VA_ARGS__> \
+            ,VARIADIC>::value == true \
+                ,NAMEDARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
+
+#define NAMEDARGS_FUNC_REFUSE(VARIADIC, ...) \
+    typename ::namedargs::details::refused_ret_holder< \
         ::namedargs::details::multi_contains<::namedargs::details::types_list<__VA_ARGS__> \
             ,VARIADIC>::value == false \
                 ,NAMEDARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE

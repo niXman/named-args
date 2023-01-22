@@ -9,9 +9,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 add_definitions(-UNDEBUG)
 
-add_executable(named-args named-args.hpp main.cpp)
+include_directories(
+    include
+)
 
-install(TARGETS named-args
+add_executable(
+    ${PROJECT_NAME}
+    include/named-args/named-args.hpp
+    main.cpp
+)
+
+install(TARGETS ${PROJECT_NAME}
     LIBRARY DESTINATION
     ${CMAKE_INSTALL_LIBDIR}
 )
