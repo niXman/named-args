@@ -3,7 +3,7 @@
 // MIT License
 //
 // Copyright (c) 2022-2023 niXman (github dot nixman at pm dot me)
-// This file is part of TinyArgs(github.com/niXman/tiny-args) project.
+// This file is part of TinyArgs(github.com/niXman/named-args) project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,13 @@
 // SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#ifndef __TYNI_ARGS__TINY_ARGS_HPP_INCLUDED
-#define __TYNI_ARGS__TINY_ARGS_HPP_INCLUDED
+#ifndef __NAMED_ARGS__NAMED_ARGS_HPP_INCLUDED
+#define __NAMED_ARGS__NAMED_ARGS_HPP_INCLUDED
 
 #include <type_traits>
 #include <tuple>
 
-namespace tinyargs {
+namespace namedargs {
 namespace details {
 
 /*************************************************************************************************/
@@ -310,22 +310,23 @@ get(const K &k, Def &&def, Args && ...args) {
 
 /*************************************************************************************************/
 
-#define TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE(...) __VA_ARGS__>::type
-#define TINYARGS_FUNCTION_ENABLE(VARIADIC, ...) \
-    typename std::enable_if< \
-        ::tinyargs::details::multi_contains<::tinyargs::details::types_list<__VA_ARGS__> \
-            ,VARIADIC>::value == true \
-                ,TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
+#define NAMEDARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE(...) __VA_ARGS__>::type
 
-#define TINYARGS_FUNCTION_DISABLE(VARIADIC, ...) \
+#define NAMEDARGS_FUNC_ENABLE(VARIADIC, ...) \
     typename std::enable_if< \
-        ::tinyargs::details::multi_contains<::tinyargs::details::types_list<__VA_ARGS__> \
+        ::namedargs::details::multi_contains<::namedargs::details::types_list<__VA_ARGS__> \
+            ,VARIADIC>::value == true \
+                ,NAMEDARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
+
+#define NAMEDARGS_FUNC_DISABLE(VARIADIC, ...) \
+    typename std::enable_if< \
+        ::namedargs::details::multi_contains<::namedargs::details::types_list<__VA_ARGS__> \
             ,VARIADIC>::value == false \
-                ,TINYARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
+                ,NAMEDARGS_PARENTHESIS_MUST_BE_PLACED_AROUND_THE_RETURN_TYPE
 
 /*************************************************************************************************/
 
-#define TINYARGS_ARGUMENT(name, type_) \
+#define NAMEDARGS_ARG(name, type_) \
     struct name ## _t { \
         using type = type_; \
         type v; \
@@ -336,6 +337,6 @@ get(const K &k, Def &&def, Args && ...args) {
 
 /*************************************************************************************************/
 
-} // ns tinyargs
+} // ns namedargs
 
-#endif // __TYNI_ARGS__TINY_ARGS_HPP_INCLUDED
+#endif // __NAMED_ARGS__NAMED_ARGS_HPP_INCLUDED

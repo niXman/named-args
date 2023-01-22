@@ -3,7 +3,7 @@ C++11 tiny implementation of the concept of named function arguments with zero r
 
 # Example
 ```cpp
-#include "tiny-args.hpp"
+#include "named-args.hpp"
 
 #include <string>
 
@@ -11,9 +11,9 @@ C++11 tiny implementation of the concept of named function arguments with zero r
 
 // declaration of args-group with it's members
 struct {
-    TINY_ARGS_ARGUMENT(fname, std::string);
-    TINY_ARGS_ARGUMENT(fsize, int);
-    TINY_ARGS_ARGUMENT(fmode, char);
+    NAMEDARGS_ARG(fname, std::string);
+    NAMEDARGS_ARG(fsize, int);
+    NAMEDARGS_ARG(fmode, char);
 } static const args;
 
 /*************************************************************************************************/
@@ -29,13 +29,12 @@ int process_file_0(Args && ...a) {
     auto tuple = std::make_tuple(std::forward<Args>(a)...);
 
     // get as required.
-    // if the 'fmode' was not passed to this function - it will leads to compile-time error!
-    auto fname = tinyargs::get(args.fname, tuple);
-    auto fsize = tinyargs::get(args.fsize, tuple);
+    auto fname = namedargs::get(args.fname, tuple);
+    auto fsize = namedargs::get(args.fsize, tuple);
 
     // get as optional.
-    // it the option was not passed to the function, then 'r' will be used for 'fmode'.
-    auto fmode = tinyargs::get(args.fmode, args.fmode = 'r', tuple);
+    // it the 'fmode' was not passed to the function, then 'r' will be used for 'fmode'.
+    auto fmode = namedargs::get(args.fmode, args.fmode = 'r', tuple);
 
     assert(fmode == k_fmode);
     assert(fname == k_fname);
@@ -52,13 +51,12 @@ int process_file_0(Args && ...a) {
 template<typename ...Args>
 int process_file_1(Args && ...a) {
     // get as required.
-    // if the 'fmode' was not passed to this function - it will leads to compile-time error!
-    auto fname = tinyargs::get(args.fname, std::forward<Args>(a)...);
-    auto fsize = tinyargs::get(args.fsize, std::forward<Args>(a)...);
+    auto fname = namedargs::get(args.fname, std::forward<Args>(a)...);
+    auto fsize = namedargs::get(args.fsize, std::forward<Args>(a)...);
 
     // get as optional.
-    // it the option was not passed to the function, then 'r' will be used for 'fmode'.
-    auto fmode = tinyargs::get(args.fmode, args.fmode = 'r', std::forward<Args>(a)...);
+    // it the 'fmode' was not passed to the function, then 'r' will be used for 'fmode'.
+    auto fmode = namedargs::get(args.fmode, args.fmode = 'r', std::forward<Args>(a)...);
 
     assert(fmode == k_fmode);
     assert(fname == k_fname);
@@ -95,14 +93,14 @@ int main(int, char **argv) {
 For this code sample:
 ```cpp
 struct {
-    TINYARGS_ARGUMENT(fname, const char *);
-    TINYARGS_ARGUMENT(fsize, int);
+    NAMEDARGS_ARG(fname, const char *);
+    NAMEDARGS_ARG(fsize, int);
 } const args;
 
 template<typename ...Args>
 int func(Args && ...a) noexcept {
-    auto *ptr = tinyargs::get(args.fname, std::forward<Args>(a)...);
-    auto len  = tinyargs::get(args.fsize, std::forward<Args>(a)...);
+    auto *ptr = namedargs::get(args.fname, std::forward<Args>(a)...);
+    auto len  = namedargs::get(args.fsize, std::forward<Args>(a)...);
     return ptr[len];
 }
 
