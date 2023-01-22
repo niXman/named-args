@@ -1,4 +1,4 @@
-# Tiny-args
+# Named arguments
 C++11 tiny implementation of the concept of named function arguments with zero runtime overhead
 
 # Example
