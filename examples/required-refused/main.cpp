@@ -42,7 +42,7 @@ struct {
 // static_assert() will be thrown if we will try to call this funtction
 // without any of the required args
 template<typename ...Args>
-NAMEDARGS_FUNC_REQUIRE(Args..., decltype(holders.fname), decltype(holders.mode))
+NAMEDARGS_FUNC_REQUIRE(Args..., holders.fname, holders.mode)
 (bool) process_file(Args &&...a) {
     auto args = std::make_tuple(std::forward<Args>(a)...);
 
@@ -58,7 +58,7 @@ NAMEDARGS_FUNC_REQUIRE(Args..., decltype(holders.fname), decltype(holders.mode))
 // static_assert() will be thrown if we will try to call this funtction
 // with any of the refused args
 template<typename ...Args>
-NAMEDARGS_FUNC_REFUSE(Args..., decltype(holders.fname))
+NAMEDARGS_FUNC_REFUSE(Args..., holders.fname)
 (bool) process_ipaddr(Args &&...a) {
     auto args = std::make_tuple(std::forward<Args>(a)...);
 
@@ -73,7 +73,9 @@ NAMEDARGS_FUNC_REFUSE(Args..., decltype(holders.fname))
 
 /*************************************************************************************************/
 
-int main(int /*argc*/, char **argv) {
+int main(int argc, char **argv) {
+    assert(argc == 3);
+
     bool src_is_ip = std::isalnum(argv[1][0]);
 
     bool ok = src_is_ip

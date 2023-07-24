@@ -162,13 +162,13 @@ noncopyable process_file_2(Args && ...a) {
 // overloading example
 
 template<typename ...Args>
-NAMEDARGS_FUNC_ENABLE(Args..., decltype(args.ipaddr))
+NAMEDARGS_FUNC_ENABLE(Args..., args.ipaddr)
 (int) overloaded(Args && .../*args*/) {
     return 0;
 }
 
 template<typename ...Args>
-NAMEDARGS_FUNC_DISABLE(Args..., decltype(args.ipaddr))
+NAMEDARGS_FUNC_DISABLE(Args..., args.ipaddr)
 (int) overloaded(Args && .../*args*/) {
     return 1;
 }

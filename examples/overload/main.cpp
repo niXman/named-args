@@ -41,7 +41,7 @@ struct {
 /*************************************************************************************************/
 
 template<typename ...Args>
-NAMEDARGS_FUNC_ENABLE(Args..., decltype(holders.fname))
+NAMEDARGS_FUNC_ENABLE(Args..., holders.fname)
 (bool) process_data(Args &&...a) {
     auto args = std::make_tuple(std::forward<Args>(a)...);
 
@@ -55,7 +55,7 @@ NAMEDARGS_FUNC_ENABLE(Args..., decltype(holders.fname))
 }
 
 template<typename ...Args>
-NAMEDARGS_FUNC_ENABLE(Args..., decltype(holders.ipaddr))
+NAMEDARGS_FUNC_ENABLE(Args..., holders.ipaddr)
 (bool) process_data(Args &&...a) {
     auto args = std::make_tuple(std::forward<Args>(a)...);
 
@@ -70,7 +70,9 @@ NAMEDARGS_FUNC_ENABLE(Args..., decltype(holders.ipaddr))
 
 /*************************************************************************************************/
 
-int main(int /*argc*/, char **argv) {
+int main(int argc, char **argv) {
+    assert(argc == 3);
+
     bool src_is_ip = std::isalnum(argv[1][0]);
 
     bool ok = src_is_ip

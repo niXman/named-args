@@ -66,7 +66,9 @@ bool grouped_process_file(Args &&...a) {
 
 /*************************************************************************************************/
 
-int main(int /*argc*/, char **argv) {
+int main(int argc, char **argv) {
+    assert(argc == 2);
+
     const char *exename = std::strrchr(argv[0], '/');
     exename = exename ? exename+1 : "ex-common";
 
