@@ -3,7 +3,7 @@
 // MIT License
 //
 // Copyright (c) 2022-2023 niXman (github dot nixman at pm dot me)
-// This file is part of TinyArgs(github.com/niXman/named-args) project.
+// This file is part of NamedArgs(github.com/niXman/named-args) project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
