@@ -2,8 +2,8 @@
 // ----------------------------------------------------------------------------
 // MIT License
 //
-// Copyright (c) 2022-2023 niXman (github dot nixman at pm dot me)
-// This file is part of NamedArgs(github.com/niXman/named-args) project.
+// Copyright (c) 2022-2026 niXman (github dot nixman at pm dot me)
+// This file is part of named-args(github.com/niXman/named-args) project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -118,6 +118,26 @@ struct position
 template<typename T, typename ...Args>
 struct position<T, std::tuple<Args...>>
     :position_impl<typename std::decay<T>::type, 0, Args...>
+{};
+
+/*************************************************************************************************/
+
+template<typename...>
+struct all_tag_types_unique : std::true_type {};
+
+template<typename A0, typename... Rest>
+struct all_tag_types_unique<A0, Rest...>
+    : std::integral_constant<bool,
+          (position<A0, Rest...>::value == -1
+           && all_tag_types_unique<Rest...>::value)>
+{};
+
+template<typename Tuple>
+struct all_tag_types_unique_tuple;
+
+template<typename... Args>
+struct all_tag_types_unique_tuple<std::tuple<Args...>>
+    : all_tag_types_unique<typename std::decay<Args>::type...>
 {};
 
 /*************************************************************************************************/
@@ -280,6 +300,10 @@ template<
 >
 typename details::enable_if_tuple<typename K::type, UCT>::type
 get(const K &k, Tuple &&tuple) {
+    static_assert(
+        details::all_tag_types_unique_tuple<UCT>::value
+        ,"duplicate named argument"
+    );
     constexpr int idx = details::position<K, UCT>::value;
     static_assert(idx != -1, "that argument seems to be necessary!");
     return details::get_arg_impl_tuple<idx != -1>::template get(
@@ -294,6 +318,10 @@ template<
 >
 typename details::enable_if_tuple<typename K::type, UCT>::type
 get(const K &k, Def &&def, Tuple &&tuple) {
+    static_assert(
+        details::all_tag_types_unique_tuple<UCT>::value
+        ,"duplicate named argument"
+    );
     constexpr int idx = details::position<K, UCT>::value;
     return details::get_arg_impl_tuple<idx != -1>::template get(
         k, std::forward<Def>(def), details::int_const<std::size_t, idx>{}
@@ -306,6 +334,10 @@ get(const K &k, Def &&def, Tuple &&tuple) {
 template<typename K, typename ...Args>
 typename details::disable_if_tuple<typename K::type, Args...>::type
 get(const K &k, Args && ...args) {
+    static_assert(
+        details::all_tag_types_unique<typename std::decay<Args>::type...>::value
+        ,"duplicate named argument"
+    );
     constexpr int idx = details::position<K, Args...>::value;
     static_assert(idx != -1, "that argument seems to be necessary!");
     return details::get_arg_impl_variadic<idx != -1>::template get(
@@ -315,6 +347,10 @@ get(const K &k, Args && ...args) {
 template<typename K, typename Def, typename ...Args>
 typename details::disable_if_tuple<typename K::type, Args...>::type
 get(const K &k, Def &&def, Args && ...args) {
+    static_assert(
+        details::all_tag_types_unique<typename std::decay<Args>::type...>::value
+        ,"duplicate named argument"
+    );
     constexpr int idx = details::position<K, Args...>::value;
     return details::get_arg_impl_variadic<idx != -1>::template get(
         k, std::forward<Def>(def), std::forward<Args>(args)...);
